@@ -357,9 +357,7 @@ func prtype(list []Entry, typeStr string) {
 		fmt.Println()
 	}
 
-	if !oneflag {
-		prindent("%s:\n", typeStr)
-	}
+	prindent("%s:\n", typeStr)
 
 	npl := 1
 	if !oneflag {
