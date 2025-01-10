@@ -170,7 +170,7 @@ func lc(name string) int {
 	}
 
 	mode := sb.Mode()
-	typ := ""
+	typeStr := ""
 
 	switch {
 
@@ -178,29 +178,29 @@ func lc(name string) int {
 		return lcdir(name)
 
 	case mode.IsRegular():
-		typ = "file"
+		typeStr = "file"
 
 	case mode&os.ModeSymlink != 0:
-		typ = "symlink"
+		typeStr = "symlink"
 
 	case mode&os.ModeDevice != 0 && mode&os.ModeCharDevice != 0:
-		typ = "character special file"
+		typeStr = "character special file"
 
 	case mode&os.ModeDevice != 0:
-		typ = "block special file"
+		typeStr = "block special file"
 
 	case mode&os.ModeNamedPipe != 0:
-		typ = "FIFO/pipe"
+		typeStr = "FIFO/pipe"
 
 	case mode&os.ModeSocket != 0:
-		typ = "socket"
+		typeStr = "socket"
 
 	default:
-		fmt.Printf("%s: unknown file type\n", name)
+		fmt.Printf("%s: unknown file typeStre\n", name)
 		return 1
 	}
 
-	fmt.Printf("%s: %s\n", name, typ)
+	fmt.Printf("%s: %s\n", name, typeStr)
 	return 0
 }
 
