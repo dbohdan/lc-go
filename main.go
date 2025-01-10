@@ -22,7 +22,7 @@ const (
 )
 
 var (
-	twidth   = 79   // Default line width if we can't detect terminal.
+	twidth   = 80   // Default line width if we can't detect the terminal.
 	oneflag  bool   // One per line.
 	aflag    bool   // Do all entries, including "." and "..".
 	bflag    bool   // Do block special.
@@ -364,9 +364,9 @@ func prtype(list []Entry, typeStr string) {
 		npl = lwidth / (maxwidth + GAP)
 	}
 
-	i := 0
-	for j, e := range list {
-		if !oneflag && i == 0 {
+	col := 0
+	for i, e := range list {
+		if !oneflag && col == 0 {
 			fmt.Printf("%*s", INDENT2, "")
 			prindent_empty()
 		}
@@ -374,12 +374,12 @@ func prtype(list []Entry, typeStr string) {
 		name := e.e_name
 		fmt.Print(name)
 
-		if i+1 != npl && j != len(list)-1 {
+		if col+1 != npl && i != len(list)-1 && maxwidth < lwidth {
 			padding := maxwidth + GAP - len(name)
 			fmt.Printf("%*s", padding, "")
-			i++
+			col++
 		} else {
-			i = 0
+			col = 0
 			fmt.Println()
 		}
 	}

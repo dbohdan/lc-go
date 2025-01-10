@@ -29,6 +29,7 @@ The page is also preserved as an [image](doc/intro.png).
 
 - lc-go detects terminal width.
 - lc-go does not dereference symlinks.
+- lc-go handles very long filenames by printing only one column when they are present.
 
 ## License
 
