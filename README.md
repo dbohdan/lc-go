@@ -18,7 +18,7 @@ On a modern Linux or BSD system, it may be viewed with `man ./doc/lc.1`.
 The original, unaltered manual page source is in [`doc/lc.orig.troff`](doc/lc.orig.troff).
 
 A scanned and OCRed page introducing lc(1) in an early chapter of the [1994 user manual](https://archive.org/details/CoherentMan/page/n48/mode/1up) may be viewed below.
-The page is also preserved as an [image](lc-intro.png).
+The page is also preserved as an [image](intro.png).
 
 <details>
 <summary><h3>From the Coherent user manual</i></h3></summary>
