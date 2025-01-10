@@ -22,6 +22,7 @@ A scanned manual page may be viewed below:
 
 ## Differences from the C version
 
+- lc-go detects terminal width.
 - lc-go does not derefence symlinks like gdm85/lc (commit `f6e696ef0e`).
 
 ## License
