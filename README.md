@@ -13,8 +13,8 @@ You may wish to rename `~/go/bin/lc-go` to `~/go/bin/lc`.
 
 ## Manual
 
-The original manual page, lightly edited and converted to use modern `-man` macros, is in the file [`doc/lc.man`](doc/lc.man).
-On a modern Linux system, it may be viewed with `man ./lc.man`.
+The original manual page, lightly edited and converted to use modern `-man` macros, is in the file [`doc/lc.1`](doc/lc.1).
+On a modern Linux or BSD system, it may be viewed with `man ./doc/lc.1`.
 The original, unaltered manual page source is in [`doc/lc.orig.troff`](doc/lc.orig.troff).
 
 A scanned manual page may be viewed below:
