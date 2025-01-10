@@ -10,10 +10,11 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"golang.org/x/term"
 )
 
 const (
-	WIDTH   = 79  // Default line width.
 	GAP     = 1   // Minimum gap between columns.
 	INDENT1 = 4   // Indent for multiple directories.
 	INDENT2 = 4   // Indent for files in a category.
@@ -21,6 +22,7 @@ const (
 )
 
 var (
+	twidth   = 79   // Default line width if we can't detect terminal.
 	oneflag  bool   // One per line.
 	aflag    bool   // Do all entries, including "." and "..".
 	bflag    bool   // Do block special.
@@ -34,7 +36,7 @@ var (
 	ndir     int
 	printed  = false // Set when we have printed something.
 	maxwidth int     // Maximum width of a filename.
-	lwidth   = WIDTH - INDENT2
+	lwidth   int
 	sb       fs.FileInfo
 	fname    string
 )
@@ -69,6 +71,11 @@ func prindent_empty() {
 }
 
 func main() {
+	if width, _, err := term.GetSize(int(os.Stdout.Fd())); err == nil {
+		twidth = width
+	}
+	lwidth = twidth - INDENT2
+
 	args := os.Args
 	estat := 0
 
