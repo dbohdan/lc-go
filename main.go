@@ -45,7 +45,7 @@ var (
 	wout io.Writer
 	werr io.Writer
 
-	rsColor = color.New()
+	rsColor = color.New()                                          // rs=0
 	bdColor = color.New(color.FgYellow, color.BgBlack, color.Bold) // bd=40;33;01
 	cdColor = color.New(color.FgYellow, color.BgBlack, color.Bold) // cd=40;33;01
 	diColor = color.New(color.FgBlue, color.Bold)                  // di=01;34
