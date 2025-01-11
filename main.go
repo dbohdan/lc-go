@@ -387,5 +387,5 @@ func prtype(list []Entry, typeStr string) {
 
 func usage() {
 	fmt.Fprintln(os.Stderr, "Usage: lc [-afdcbpl] [-1] [name ...]")
-	os.Exit(1)
+	os.Exit(2)
 }
