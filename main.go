@@ -24,6 +24,7 @@ const (
 
 var (
 	oneflag  bool   // One per line.
+	Fflag    bool   // Classify files.
 	aflag    bool   // Do all entries, including "." and "..".
 	bflag    bool   // Do block special.
 	cflag    bool   // Do character special.
@@ -149,6 +150,9 @@ func main() {
 
 			case 'a':
 				aflag = true
+
+			case 'F':
+				Fflag = true
 
 			default:
 				usage()
@@ -335,6 +339,10 @@ func style(mode fs.FileMode) (color.Color, string) {
 		m = piIndicator
 	}
 
+	if !Fflag {
+		m = rsIndicator
+	}
+
 	return *c, m
 }
 
@@ -487,6 +495,6 @@ func prtype(list []Entry, typeStr string) {
 }
 
 func usage() {
-	fmt.Fprintf(werr, "Usage: lc [-afdcbpl] [-1] [name ...]\n")
+	fmt.Fprintf(werr, "Usage: lc [-afdcbpl] [-1F] [name ...]\n")
 	os.Exit(2)
 }
