@@ -17,9 +17,9 @@ import (
 )
 
 const (
-	GAP     = 1 // Minimum gap between columns.
-	INDENT1 = 4 // Indent for multiple directories.
-	INDENT2 = 4 // Indent for files in a category.
+	gap     = 1 // Minimum gap between columns.
+	indent1 = 4 // Indent for multiple directories.
+	indent2 = 4 // Indent for files in a category.
 )
 
 var (
@@ -39,7 +39,6 @@ var (
 	lwidth   int
 	twidth   = 80 // Default line width if we can't detect the terminal.
 
-	sb    fs.FileInfo
 	fname string
 
 	wout io.Writer
@@ -87,7 +86,7 @@ var (
 
 func prindent(format string, a ...any) {
 	if ndir > 1 {
-		fmt.Fprintf(wout, "%*s", INDENT1, "")
+		fmt.Fprintf(wout, "%*s", indent1, "")
 	}
 	fmt.Fprintf(wout, format, a...)
 	printed = true
@@ -95,7 +94,7 @@ func prindent(format string, a ...any) {
 
 func prindent_empty() {
 	if ndir > 1 {
-		fmt.Fprintf(wout, "%*s", INDENT1, "")
+		fmt.Fprintf(wout, "%*s", indent1, "")
 	}
 	printed = true
 }
@@ -104,7 +103,7 @@ func main() {
 	if width, _, err := term.GetSize(int(os.Stdout.Fd())); err == nil {
 		twidth = width
 	}
-	lwidth = twidth - INDENT2
+	lwidth = twidth - indent2
 
 	wout = os.Stdout
 	werr = os.Stderr
@@ -179,7 +178,7 @@ func main() {
 		}
 	} else {
 		if len(args)-argIdx > 1 {
-			lwidth -= INDENT1
+			lwidth -= indent1
 		}
 		ndir = len(args) - argIdx
 		for i := argIdx; i < len(args); i++ {
@@ -195,8 +194,7 @@ func main() {
 
 // lc processes a single name.
 func lc(name string) int {
-	var err error
-	sb, err = os.Stat(name)
+	sb, err := os.Stat(name)
 	if err != nil {
 		fmt.Fprintf(wout, "%s: not found\n", name)
 		return 1
@@ -350,8 +348,7 @@ func doentry(dirname string, dp fs.DirEntry) int {
 	fullPath := filepath.Join(dirname, name)
 	fname = fullPath
 
-	var err error
-	sb, err = dp.Info()
+	sb, err := dp.Info()
 	if err != nil {
 		prindent("%s: cannot stat\n", name)
 		return 1
@@ -463,13 +460,13 @@ func prtype(list []Entry, typeStr string) {
 
 	npl := 1
 	if !oneflag {
-		npl = lwidth / (maxwidth + GAP)
+		npl = lwidth / (maxwidth + gap)
 	}
 
 	col := 0
 	for i, e := range list {
 		if !oneflag && col == 0 {
-			fmt.Fprintf(wout, "%*s", INDENT2, "")
+			fmt.Fprintf(wout, "%*s", indent2, "")
 			prindent_empty()
 		}
 
@@ -477,7 +474,7 @@ func prtype(list []Entry, typeStr string) {
 		fmt.Fprint(wout, e.indicator)
 
 		if col+1 != npl && i != len(list)-1 && maxwidth < lwidth {
-			padding := maxwidth + GAP - len(e.name)
+			padding := maxwidth + gap - len(e.name)
 			fmt.Fprintf(wout, "%*s", padding, "")
 			col++
 		} else {

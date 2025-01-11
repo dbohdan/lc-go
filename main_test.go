@@ -26,7 +26,7 @@ func resetGlobals() {
 	ndir = 0
 	printed = false
 	maxwidth = 0
-	lwidth = twidth - INDENT2
+	lwidth = twidth - indent2
 	wout = os.Stdout
 	werr = os.Stderr
 }
