@@ -237,9 +237,9 @@ func lc(name string) error {
 		return fmt.Errorf("unknown file type")
 	}
 
-	entryColor, indicator := style(mode)
+	nameColor, indicator := style(mode)
 
-	entryColor.Fprint(wout, name)
+	nameColor.Fprint(wout, name)
 	fmt.Fprintf(wout, "%s: %s\n", indicator, typeStr)
 	return nil
 }
@@ -259,7 +259,19 @@ func lcdir(dname string) error {
 		if printed {
 			fmt.Fprintln(wout)
 		}
-		fmt.Fprintf(wout, "%s:\n", dname)
+
+		info, err := os.Stat(dname)
+		if err != nil {
+			return fmt.Errorf("cannot stat directory: %w", err)
+		}
+
+		if Fflag {
+			dname = strings.TrimSuffix(dname, diIndicator)
+		}
+
+		dColor, indicator := style(info.Mode())
+		dColor.Fprint(wout, dname)
+		fmt.Fprintf(wout, "%s:\n", indicator)
 	}
 	printed = false
 
@@ -310,65 +322,66 @@ func lcdir(dname string) error {
 }
 
 func style(mode fs.FileMode) (color.Color, string) {
-	var c *color.Color = rsColor
-	m := rsIndicator
+	var clr *color.Color = rsColor
+	ind := rsIndicator
 
 	switch {
+
 	case mode.IsDir():
-		c = diColor
-		m = diIndicator
+		clr = diColor
+		ind = diIndicator
 
 		// Check for a world-writable directory.
 		if mode&0o002 != 0 {
 			if mode&os.ModeSticky == 0 {
-				c = owColor
+				clr = owColor
 			} else {
-				c = twColor
+				clr = twColor
 			}
 		} else if mode&os.ModeSticky != 0 {
-			c = stColor
+			clr = stColor
 		}
 
 	case mode.IsRegular():
 		if mode&0o001|mode&0o010|mode&0o100 != 0 {
-			c = exColor
-			m = exIndicator
+			clr = exColor
+			ind = exIndicator
 		}
 		if mode&os.ModeSetuid != 0 {
-			c = suColor
+			clr = suColor
 		} else if mode&os.ModeSetgid != 0 {
-			c = sgColor
+			clr = sgColor
 		}
 
 	case mode&os.ModeSymlink != 0:
 		// Check if the symlink is broken.
 		if _, err := os.Stat(fname); err != nil {
-			c = orColor
+			clr = orColor
 		} else {
-			c = lnColor
+			clr = lnColor
 		}
-		m = lnIndicator
+		ind = lnIndicator
 
 	case mode&os.ModeDevice != 0 && mode&os.ModeCharDevice == 0:
-		c = bdColor
+		clr = bdColor
 
 	case mode&os.ModeDevice != 0 && mode&os.ModeCharDevice != 0:
-		c = cdColor
+		clr = cdColor
 
 	case mode&os.ModeSocket != 0:
-		c = soColor
-		m = soIndicator
+		clr = soColor
+		ind = soIndicator
 
 	case mode&os.ModeNamedPipe != 0:
-		c = piColor
-		m = piIndicator
+		clr = piColor
+		ind = piIndicator
 	}
 
 	if !Fflag {
-		m = rsIndicator
+		ind = rsIndicator
 	}
 
-	return *c, m
+	return *clr, ind
 }
 
 // doentry processes a single directory entry.
