@@ -33,6 +33,7 @@ The page is also preserved as an [image](doc/intro.png).
 
 ## Differences from the C version
 
+- lc-go adds colors and file type indicators after the filename, like `*` for executable files.
 - lc-go detects terminal width.
 - lc-go does not dereference symlinks.
 - lc-go handles very long filenames by printing only one column when they are present.

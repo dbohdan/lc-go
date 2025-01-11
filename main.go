@@ -12,18 +12,17 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/fatih/color"
 	"golang.org/x/term"
 )
 
 const (
-	GAP     = 1   // Minimum gap between columns.
-	INDENT1 = 4   // Indent for multiple directories.
-	INDENT2 = 4   // Indent for files in a category.
-	NFNAME  = 400 // Maximum a filename can expand to.
+	GAP     = 1 // Minimum gap between columns.
+	INDENT1 = 4 // Indent for multiple directories.
+	INDENT2 = 4 // Indent for files in a category.
 )
 
 var (
-	twidth   = 80   // Default line width if we can't detect the terminal.
 	oneflag  bool   // One per line.
 	aflag    bool   // Do all entries, including "." and "..".
 	bflag    bool   // Do block special.
@@ -38,14 +37,42 @@ var (
 	printed  = false // Set when we have printed something.
 	maxwidth int     // Maximum width of a filename.
 	lwidth   int
-	sb       fs.FileInfo
-	fname    string
-	wout     io.Writer
-	werr     io.Writer
+	twidth   = 80 // Default line width if we can't detect the terminal.
+
+	sb    fs.FileInfo
+	fname string
+
+	wout io.Writer
+	werr io.Writer
+
+	rsColor = color.New()
+	bdColor = color.New(color.FgYellow, color.BgBlack, color.Bold) // bd=40;33;01
+	cdColor = color.New(color.FgYellow, color.BgBlack, color.Bold) // cd=40;33;01
+	diColor = color.New(color.FgBlue, color.Bold)                  // di=01;34
+	exColor = color.New(color.FgGreen, color.Bold)                 // ex=01;32
+	lnColor = color.New(color.FgCyan, color.Bold)                  // ln=01;36
+	orColor = color.New(color.FgRed, color.BgBlack, color.Bold)    // or=40;31;01
+	soColor = color.New(color.FgMagenta, color.Bold)               // so=01;35
+	piColor = color.New(color.FgYellow, color.BgBlack)             // pi=40;33
+	suColor = color.New(color.FgWhite, color.BgRed)                // su=37;41
+	sgColor = color.New(color.FgBlack, color.BgYellow)             // sg=30;43
+	stColor = color.New(color.FgWhite, color.BgBlue)               // st=37;44
+	owColor = color.New(color.FgBlue, color.BgGreen)               // ow=34;42
+	twColor = color.New(color.FgBlack, color.BgGreen)              // tw=30;42
+
+	rsIndicator = ""
+	diIndicator = "/"
+	exIndicator = "*"
+	lnIndicator = "@"
+	soIndicator = "="
+	piIndicator = "|"
 )
 
 type Entry struct {
-	e_name string
+	name string
+
+	color     color.Color
+	indicator string
 }
 
 var (
@@ -166,7 +193,7 @@ func main() {
 	os.Exit(estat)
 }
 
-// lc does "lc" on a single name.
+// lc processes a single name.
 func lc(name string) int {
 	var err error
 	sb, err = os.Stat(name)
@@ -202,11 +229,14 @@ func lc(name string) int {
 		typeStr = "socket"
 
 	default:
-		fmt.Printf("%s: unknown file typeStre\n", name)
+		fmt.Printf("%s: unknown file type\n", name)
 		return 1
 	}
 
-	fmt.Fprintf(wout, "%s: %s\n", name, typeStr)
+	entryColor, indicator := style(mode)
+
+	entryColor.Fprint(wout, name)
+	fmt.Fprintf(wout, "%s: %s\n", indicator, typeStr)
 	return 0
 }
 
@@ -250,6 +280,64 @@ func lcdir(dname string) int {
 	return 0
 }
 
+func style(mode fs.FileMode) (color.Color, string) {
+	var c *color.Color = rsColor
+	m := rsIndicator
+
+	switch {
+	case mode.IsDir():
+		c = diColor
+		m = diIndicator
+
+		// Check for a world-writable directory.
+		if mode&0o002 != 0 {
+			if mode&os.ModeSticky == 0 {
+				c = owColor
+			} else {
+				c = twColor
+			}
+		} else if mode&os.ModeSticky != 0 {
+			c = stColor
+		}
+
+	case mode.IsRegular():
+		if mode&0o001|mode&0o010|mode&0o100 != 0 {
+			c = exColor
+			m = exIndicator
+		}
+		if mode&os.ModeSetuid != 0 {
+			c = suColor
+		} else if mode&os.ModeSetgid != 0 {
+			c = sgColor
+		}
+
+	case mode&os.ModeSymlink != 0:
+		// Check if the symlink is broken.
+		if _, err := os.Stat(fname); err != nil {
+			c = orColor
+		} else {
+			c = lnColor
+		}
+		m = lnIndicator
+
+	case mode&os.ModeDevice != 0 && mode&os.ModeCharDevice == 0:
+		c = bdColor
+
+	case mode&os.ModeDevice != 0 && mode&os.ModeCharDevice != 0:
+		c = cdColor
+
+	case mode&os.ModeSocket != 0:
+		c = soColor
+		m = soIndicator
+
+	case mode&os.ModeNamedPipe != 0:
+		c = piColor
+		m = piIndicator
+	}
+
+	return *c, m
+}
+
 // doentry processes a single directory entry.
 func doentry(dirname string, dp fs.DirEntry) int {
 	width := 0
@@ -262,11 +350,6 @@ func doentry(dirname string, dp fs.DirEntry) int {
 	fullPath := filepath.Join(dirname, name)
 	fname = fullPath
 
-	width = len(name)
-	if width > maxwidth {
-		maxwidth = width
-	}
-
 	var err error
 	sb, err = dp.Info()
 	if err != nil {
@@ -276,6 +359,7 @@ func doentry(dirname string, dp fs.DirEntry) int {
 
 	var list *[]Entry
 	mode := sb.Mode()
+
 	switch {
 
 	case mode.IsRegular():
@@ -304,7 +388,19 @@ func doentry(dirname string, dp fs.DirEntry) int {
 		return 1
 	}
 
-	e := Entry{e_name: name}
+	entryColor, indicator := style(mode)
+
+	width = len(name) + len(indicator)
+	if width > maxwidth {
+		maxwidth = width
+	}
+
+	e := Entry{
+		name:      name,
+
+		color:     entryColor,
+		indicator: indicator,
+	}
 	addlist(list, e)
 	return 0
 }
@@ -313,7 +409,7 @@ func doentry(dirname string, dp fs.DirEntry) int {
 func addlist(lsp *[]Entry, e Entry) {
 	*lsp = append(*lsp, e)
 	slices.SortFunc(*lsp, func(a, b Entry) int {
-		return strings.Compare(a.e_name, b.e_name)
+		return strings.Compare(a.name, b.name)
 	})
 }
 
@@ -377,11 +473,11 @@ func prtype(list []Entry, typeStr string) {
 			prindent_empty()
 		}
 
-		name := e.e_name
-		fmt.Fprint(wout, name)
+		e.color.Fprint(wout, e.name)
+		fmt.Fprint(wout, e.indicator)
 
 		if col+1 != npl && i != len(list)-1 && maxwidth < lwidth {
-			padding := maxwidth + GAP - len(name)
+			padding := maxwidth + GAP - len(e.name)
 			fmt.Fprintf(wout, "%*s", padding, "")
 			col++
 		} else {

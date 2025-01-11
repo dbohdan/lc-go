@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/fatih/color"
 )
 
 // resetGlobals resets all global variables to their default state.
@@ -31,6 +33,7 @@ func resetGlobals() {
 
 func TestLcSingleFile(t *testing.T) {
 	resetGlobals()
+	color.NoColor = true
 
 	tmpfile, err := os.CreateTemp("", "test")
 	if err != nil {
