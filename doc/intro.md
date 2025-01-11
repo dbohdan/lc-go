@@ -43,7 +43,7 @@ lc -f
 ```
 
 the COHERENT system prints all of the files in the current directory.
-The following gives the commonly used options to the command `lc`:
+The following gives the commonly used options to the command **lc**:
 
 - **-d** List directories only, omitting files
 - **-f** List files only, omitting directories
