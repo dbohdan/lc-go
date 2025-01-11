@@ -1,5 +1,13 @@
 .PHONY: all
-all: lc-go test
+all: build test
+
+.PHONY: build
+build: lc-go
+
+.PHONY: install
+install:
+	go install .
+	cd "$$(dirname "$$(command -v lc-go)")" && ln -s lc-go lc
 
 .PHONY: clean
 clean:
