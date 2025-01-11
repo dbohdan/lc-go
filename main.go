@@ -522,7 +522,7 @@ func prtype(list []Entry, typeStr string) {
 		fmt.Fprint(wout, e.indicator)
 
 		if col+1 != npl && i != len(list)-1 && maxwidth < lwidth {
-			padding := maxwidth + gap - len(e.name)
+			padding := maxwidth + gap - len(e.name) - len(e.indicator)
 			fmt.Fprintf(wout, "%*s", padding, "")
 			col++
 		} else {
