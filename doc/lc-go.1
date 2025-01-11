@@ -1,24 +1,27 @@
-.TH LC 1 "January 2025" "Coherent UNIX" "User Commands"
+.TH LC-GO 1 "January 2025" "Coherent UNIX" "User Commands"
 .SH NAME
-lc - list directory contents in columnar format
+lc-go - list directory contents in columnar format
 
 .SH SYNOPSIS
-.B lc
-[\fB-1abcdfp\fR] [\fIDIRECTORY\fR]...
+.B lc-go
+[\fB-1Fabcdfp\fR] [\fIDIRECTORY\fR]...
 
 .SH DESCRIPTION
-.B lc
+.B lc-go
 lists the contents of the specified
 .IR DIRECTORY ,
-or the current directory if none is provided. It categorizes files by type (e.g. regular files, directories) and displays them in columns for readability.
+or the current directory if none is provided. It categorizes files by type (e.g., regular files, directories) and displays them in columns for readability. By default, filenames are printed in color based on their type. Color output can be disabled by setting the environment variable NO_COLOR=1.
 
 .SH OPTIONS
 .TP
 .BR -1
 List one file per line, instead of in columns.
 .TP
+.B -F
+Enable file type indicators after filenames, like "*" after executable files.
+.TP
 .B -a
-List all files, including hidden entries `.' and `..'.
+List all files, including hidden entries "." and "..".
 .TP
 .B -b
 List block-special files only.
@@ -43,13 +46,13 @@ Options can be combined for customized output. For example, to display all files
 .PP
 .RS
 .EX
-lc \-a1
+lc-go \-a1
 .EE
 .RE
 
 .PP
 If no directory is specified,
-.B lc
+.B lc-go
 defaults to the current working directory.
 
 .SH EXAMPLES
@@ -57,19 +60,10 @@ The following command lists all regular files in the current directory:
 .PP
 .RS
 .EX
-lc -f
-.EE
-.RE
-
-To copy all regular files to a directory called
-.B mydir
-you can use:
-.PP
-.RS
-.EX
-cp `lc -f` mydir
+lc-go -f
 .EE
 .RE
 
 .SH SEE ALSO
+.BR lc (1)
 .BR ls (1)

@@ -1,13 +1,13 @@
 # Documentation
 
-The files in this directory document lc(1).
+The files in this directory document lc-go and lc.
 
 ## Manual pages
 
 - [`lc.orig.troff`](lc.orig.troff) contains the troff source file for the man page, with no changes from the original.
-- [`lc.1`](lc.1) contains a refreshed version of the same man page, modernised to use `-mman` macros and lightly edited for clarity and concision.
-  `man ./doc/lc.1` will render this on a modern Linux or BSD system.
-- [`lc.1.md`](lc.1.md) is `lc.1` translated to Markdown.
+- [`lc-go.1`](lc-go.1) contains a refreshed version of the same man page, modernised to use `-mman` macros and lightly edited for clarity and concision.
+  `man ./doc/lc-go.1` will render this on a modern Linux or BSD system.
+- [`lc-go.1.md`](lc-go.1.md) is `lc-go.1` translated to Markdown.
 
 ## Introduction
 
