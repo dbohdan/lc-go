@@ -45,8 +45,8 @@ func TestLcSingleFile(t *testing.T) {
 	var buf bytes.Buffer
 	wout = &buf
 
-	if ret := lc(tmpfile.Name()); ret != 0 {
-		t.Errorf("lc returned %d, want 0", ret)
+	if err := lc(tmpfile.Name()); err != nil {
+		t.Errorf("lc returned error: %v", err)
 	}
 
 	got := buf.String()
@@ -82,8 +82,8 @@ func TestLcDirectory(t *testing.T) {
 	var buf bytes.Buffer
 	wout = &buf
 
-	if ret := lc(tmpdir); ret != 0 {
-		t.Errorf("lc returned %d, want 0", ret)
+	if err := lc(tmpdir); err != nil {
+		t.Errorf("lc returned error: %v", err)
 	}
 
 	got := buf.String()
@@ -101,8 +101,8 @@ func TestLcNotFound(t *testing.T) {
 	var buf bytes.Buffer
 	wout = &buf
 
-	if ret := lc("nonexistent"); ret != 1 {
-		t.Errorf("lc returned %d, want 1", ret)
+	if err := lc("nonexistent"); err == nil {
+		t.Error("lc didn't return error")
 	}
 
 	got := buf.String()

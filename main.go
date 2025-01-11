@@ -109,7 +109,7 @@ func main() {
 	werr = os.Stderr
 
 	args := os.Args
-	estat := 0
+	var lastErr error
 
 	argIdx := 1
 	for argIdx < len(args) && strings.HasPrefix(args[argIdx], "-") {
@@ -173,8 +173,8 @@ func main() {
 	// Process directories.
 	if argIdx >= len(args) {
 		ndir = 1
-		if lc(".") != 0 {
-			estat = 1
+		if err := lc("."); err != nil {
+			lastErr = err
 		}
 	} else {
 		if len(args)-argIdx > 1 {
@@ -182,22 +182,24 @@ func main() {
 		}
 		ndir = len(args) - argIdx
 		for i := argIdx; i < len(args); i++ {
-			if lc(args[i]) != 0 {
-				estat = 1
+			if err := lc(args[i]); err != nil {
+				lastErr = err
 			}
 			w.Flush()
 		}
 	}
 
-	os.Exit(estat)
+	if lastErr != nil {
+		os.Exit(1)
+	}
 }
 
 // lc processes a single name.
-func lc(name string) int {
+func lc(name string) error {
 	sb, err := os.Stat(name)
 	if err != nil {
 		fmt.Fprintf(wout, "%s: not found\n", name)
-		return 1
+		return fmt.Errorf("stat failed: %w", err)
 	}
 
 	mode := sb.Mode()
@@ -228,18 +230,18 @@ func lc(name string) int {
 
 	default:
 		fmt.Printf("%s: unknown file type\n", name)
-		return 1
+		return fmt.Errorf("unknown file type")
 	}
 
 	entryColor, indicator := style(mode)
 
 	entryColor.Fprint(wout, name)
 	fmt.Fprintf(wout, "%s: %s\n", indicator, typeStr)
-	return 0
+	return nil
 }
 
 // lcdir processes one directory.
-func lcdir(dname string) int {
+func lcdir(dname string) error {
 	clearlist(&files)
 	clearlist(&links)
 	clearlist(&dirs)
@@ -260,14 +262,14 @@ func lcdir(dname string) int {
 	dir, err := os.Open(dname)
 	if err != nil {
 		fmt.Fprintf(wout, "Cannot open directory `%s`\n", dname)
-		return 1
+		return fmt.Errorf("cannot open directory: %w", err)
 	}
 	defer dir.Close()
 
 	entries, err := dir.ReadDir(-1)
 	if err != nil {
 		fmt.Fprintf(werr, "%s: directory read error: %s\n", dname, err)
-		return 1
+		return fmt.Errorf("directory read error: %w", err)
 	}
 
 	for _, entry := range entries {
@@ -275,7 +277,7 @@ func lcdir(dname string) int {
 	}
 
 	prnames()
-	return 0
+	return nil
 }
 
 func style(mode fs.FileMode) (color.Color, string) {
@@ -337,12 +339,12 @@ func style(mode fs.FileMode) (color.Color, string) {
 }
 
 // doentry processes a single directory entry.
-func doentry(dirname string, dp fs.DirEntry) int {
+func doentry(dirname string, dp fs.DirEntry) error {
 	width := 0
 
 	name := dp.Name()
 	if !aflag && (name == "." || name == "..") {
-		return 0
+		return nil
 	}
 
 	fullPath := filepath.Join(dirname, name)
@@ -351,7 +353,7 @@ func doentry(dirname string, dp fs.DirEntry) int {
 	sb, err := dp.Info()
 	if err != nil {
 		prindent("%s: cannot stat\n", name)
-		return 1
+		return fmt.Errorf("cannot stat %s", name)
 	}
 
 	var list *[]Entry
@@ -382,7 +384,7 @@ func doentry(dirname string, dp fs.DirEntry) int {
 
 	default:
 		prindent("%s: unknown file type\n", name)
-		return 1
+		return fmt.Errorf("unknown file type: %s", name)
 	}
 
 	entryColor, indicator := style(mode)
@@ -393,13 +395,13 @@ func doentry(dirname string, dp fs.DirEntry) int {
 	}
 
 	e := Entry{
-		name:      name,
+		name: name,
 
 		color:     entryColor,
 		indicator: indicator,
 	}
 	addlist(list, e)
-	return 0
+	return nil
 }
 
 // addlist adds an entry to the list in sorted order.
