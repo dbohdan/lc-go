@@ -5,6 +5,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -39,6 +40,8 @@ var (
 	lwidth   int
 	sb       fs.FileInfo
 	fname    string
+	wout     io.Writer
+	werr     io.Writer
 )
 
 type Entry struct {
@@ -57,15 +60,15 @@ var (
 
 func prindent(format string, a ...any) {
 	if ndir > 1 {
-		fmt.Printf("%*s", INDENT1, "")
+		fmt.Fprintf(wout, "%*s", INDENT1, "")
 	}
-	fmt.Printf(format, a...)
+	fmt.Fprintf(wout, format, a...)
 	printed = true
 }
 
 func prindent_empty() {
 	if ndir > 1 {
-		fmt.Printf("%*s", INDENT1, "")
+		fmt.Fprintf(wout, "%*s", INDENT1, "")
 	}
 	printed = true
 }
@@ -75,6 +78,9 @@ func main() {
 		twidth = width
 	}
 	lwidth = twidth - INDENT2
+
+	wout = os.Stdout
+	werr = os.Stderr
 
 	args := os.Args
 	estat := 0
@@ -165,7 +171,7 @@ func lc(name string) int {
 	var err error
 	sb, err = os.Stat(name)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: not found\n", name)
+		fmt.Fprintf(wout, "%s: not found\n", name)
 		return 1
 	}
 
@@ -200,7 +206,7 @@ func lc(name string) int {
 		return 1
 	}
 
-	fmt.Printf("%s: %s\n", name, typeStr)
+	fmt.Fprintf(wout, "%s: %s\n", name, typeStr)
 	return 0
 }
 
@@ -217,22 +223,22 @@ func lcdir(dname string) int {
 
 	if ndir > 1 {
 		if printed {
-			fmt.Println()
+			fmt.Fprintln(wout)
 		}
-		fmt.Printf("%s:\n", dname)
+		fmt.Fprintf(wout, "%s:\n", dname)
 	}
 	printed = false
 
 	dir, err := os.Open(dname)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Cannot open directory `%s`\n", dname)
+		fmt.Fprintf(wout, "Cannot open directory `%s`\n", dname)
 		return 1
 	}
 	defer dir.Close()
 
 	entries, err := dir.ReadDir(-1)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s: directory read error: %s\n", dname, err)
+		fmt.Fprintf(werr, "%s: directory read error: %s\n", dname, err)
 		return 1
 	}
 
@@ -354,7 +360,7 @@ func prtype(list []Entry, typeStr string) {
 	}
 
 	if printed {
-		fmt.Println()
+		fmt.Fprintln(wout)
 	}
 
 	prindent("%s:\n", typeStr)
@@ -367,25 +373,25 @@ func prtype(list []Entry, typeStr string) {
 	col := 0
 	for i, e := range list {
 		if !oneflag && col == 0 {
-			fmt.Printf("%*s", INDENT2, "")
+			fmt.Fprintf(wout, "%*s", INDENT2, "")
 			prindent_empty()
 		}
 
 		name := e.e_name
-		fmt.Print(name)
+		fmt.Fprint(wout, name)
 
 		if col+1 != npl && i != len(list)-1 && maxwidth < lwidth {
 			padding := maxwidth + GAP - len(name)
-			fmt.Printf("%*s", padding, "")
+			fmt.Fprintf(wout, "%*s", padding, "")
 			col++
 		} else {
 			col = 0
-			fmt.Println()
+			fmt.Fprintln(wout)
 		}
 	}
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "Usage: lc [-afdcbpl] [-1] [name ...]")
+	fmt.Fprintf(werr, "Usage: lc [-afdcbpl] [-1] [name ...]\n")
 	os.Exit(2)
 }

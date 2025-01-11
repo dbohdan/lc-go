@@ -11,6 +11,12 @@ go install dbohdan.com/lc-go@latest
 
 You may wish to rename `~/go/bin/lc-go` to `~/go/bin/lc`.
 
+## Compatibility
+
+lc-go supports FreeBSD, Linux, macOS, NetBSD, and OpenBSD.
+It is automatically tested on those systems.
+It builds but doesn't work on Windows.
+
 ## Documentation
 
 ### Manual page
