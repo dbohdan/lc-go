@@ -270,6 +270,31 @@ func lcdir(dname string) error {
 	}
 	defer dir.Close()
 
+	// If aflag is set, manually print an entry for "." and "..".
+	if aflag {
+		// Current directory.
+		info, err := os.Stat(dname)
+		if err != nil {
+			return fmt.Errorf("cannot stat current directory: %w", err)
+		}
+		doentry(dname, "", fs.FileInfoToDirEntry(info))
+
+		// Parent directory.
+		abs, err := filepath.Abs(dname)
+		if err != nil {
+			return fmt.Errorf("cannot resolve absolute path: %w", err)
+		}
+		parentDir := filepath.Dir(abs)
+		info, err = os.Stat(parentDir)
+		if err != nil {
+			return fmt.Errorf("cannot stat current directory: %w", err)
+		}
+
+		parentEntry := fs.FileInfoToDirEntry(info)
+		doentry(dname, "..", parentEntry)
+	}
+
+	// Read and process regular directory entries.
 	entries, err := dir.ReadDir(-1)
 	if err != nil {
 		fmt.Fprintf(werr, "%s: directory read error: %s\n", dname, err)
@@ -277,7 +302,7 @@ func lcdir(dname string) error {
 	}
 
 	for _, entry := range entries {
-		doentry(dname, entry)
+		doentry(dname, "", entry)
 	}
 
 	prnames()
@@ -347,12 +372,12 @@ func style(mode fs.FileMode) (color.Color, string) {
 }
 
 // doentry processes a single directory entry.
-func doentry(dirname string, dp fs.DirEntry) error {
+func doentry(dirname, nameoverride string, dp fs.DirEntry) error {
 	width := 0
 
 	name := dp.Name()
-	if !aflag && (name == "." || name == "..") {
-		return nil
+	if nameoverride != "" {
+		name = nameoverride
 	}
 
 	fullPath := filepath.Join(dirname, name)
